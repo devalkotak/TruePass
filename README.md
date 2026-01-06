@@ -1,11 +1,8 @@
 Admin Role
-admin - devaldeval
+admin - admin123
 
 Organizer Role
-NESCO - nesconesco
+nesco - nesconesco
 
     Resellers
     nesco.reseller1 - password1
-
-Organizer
-CRZY
