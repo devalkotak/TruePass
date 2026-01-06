@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TruePass</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="logo">True<span class="text-accent">Pass</span></a>
+            
+            <div class="nav-links">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('wallet') }}" class="nav-item">
+                        <span style="color:var(--text-secondary); font-size:0.9em;">WALLET</span> 
+                        <span style="font-weight:bold;">${{ "%.2f"|format(current_user.balance) }}</span>
+                    </a>
+                    
+                    {% if current_user.role == 'customer' %}
+                        <a href="{{ url_for('view_cart') }}" class="nav-item">Cart</a>
+                        <a href="{{ url_for('orders') }}" class="nav-item">Orders</a>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('dashboard') }}" class="nav-item">Dashboard</a>
+                    
+                    <button onclick="openModal('passwordModal')" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                        Security
+                    </button>
+
+                    <a href="{{ url_for('logout') }}" class="btn btn-sm" style="background:#eee; color:#333; padding: 0.4rem 0.8rem;">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="nav-item">Log In</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-accent btn-sm">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div style="margin-bottom: 2rem;">
+                    {% for message in messages %}
+                        <div style="padding:1rem; background:white; border-left:4px solid var(--accent-color); border-radius:4px; box-shadow:var(--shadow-sm);">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('passwordModal')">&times;</span>
+            <h2>🔐 Update Password</h2>
+            <p style="color:var(--text-secondary); margin-bottom:1.5rem;">Ensure your account stays secure.</p>
+            <form action="{{ url_for('change_password') }}" method="POST">
+                <label>New Password</label>
+                <input type="password" name="new_password" required placeholder="••••••••">
+                <button class="btn btn-accent" style="width:100%;">Update Credentials</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) {
+            document.getElementById(id).style.display = "block";
+        }
+        function closeModal(id) {
+            document.getElementById(id).style.display = "none";
+        }
+        // Close modal if user clicks outside content
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

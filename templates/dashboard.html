@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1 style="margin:0;">Dashboard</h1>
+        <p style="color:var(--text-secondary); margin:0;">Welcome back, <strong>{{ current_user.username }}</strong></p>
+    </div>
+    
+    <div style="display:flex; gap:10px;">
+        {% if current_user.role == 'organizer' %}
+            <button onclick="openModal('createEventModal')" class="btn btn-accent">
+                + New Event
+            </button>
+            <button onclick="openModal('createUserModal')" class="btn btn-outline">
+                + Add Reseller
+            </button>
+        {% elif current_user.role == 'admin' %}
+            <button onclick="openModal('createUserModal')" class="btn btn-accent">
+                + Create Organizer
+            </button>
+        {% elif current_user.role == 'reseller' %}
+             <a href="{{ url_for('view_market', wallet_address=current_user.wallet_address) }}" class="btn btn-accent">
+                View My Shop &rarr;
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if current_user.role == 'organizer' %}
+    <h3 style="border-bottom:1px solid var(--border-color); padding-bottom:0.5rem;">Your Events</h3>
+    <div class="grid">
+        {% for d in organizer_data %}
+        <div class="card">
+            <div style="margin-bottom:1rem;">
+                <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <h3 style="margin:0;">{{ d.event.name }}</h3>
+                    <span class="tag">{{ d.event.symbol }}</span>
+                </div>
+                <small style="color:var(--text-secondary);">{{ d.event.date }}</small>
+            </div>
+            
+            <div style="background:var(--bg-color); padding:1rem; border-radius:var(--radius-md);">
+                <div class="stat-row">
+                    <span>Wholesale Price</span>
+                    <span class="stat-val">${{ d.event.wholesale_price }}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Resale Cap</span>
+                    <span class="stat-val">${{ d.event.max_resale_price }}</span>
+                </div>
+                <div class="stat-row" style="margin-top:0.5rem; padding-top:0.5rem; border-top:1px solid #ddd;">
+                    <span>Sold / Total</span>
+                    <span class="stat-val" style="color:var(--accent-color);">{{ d.sold }} / {{ d.total }}</span>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div style="grid-column:1/-1; text-align:center; padding:3rem; color:var(--text-secondary);">
+            No events created yet. Click "New Event" to start.
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div id="createEventModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createEventModal')">&times;</span>
+            <h2>🚀 Deploy New Event</h2>
+            <form action="{{ url_for('create_event') }}" method="POST">
+                <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px;">
+                    <div><label>Event Name</label><input type="text" name="name" required></div>
+                    <div><label>Symbol</label><input type="text" name="symbol" placeholder="TKT" required></div>
+                </div>
+                <label>Event Date</label><input type="date" name="date" required>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div><label>Wholesale ($)</label><input type="number" name="wholesale" step="0.01" required></div>
+                    <div><label>Max Resale ($)</label><input type="number" name="cap" step="0.01" required></div>
+                </div>
+                <label>Total Supply (Tickets)</label><input type="number" name="supply" required>
+                
+                <button class="btn btn-accent" style="width:100%;">Mint Tickets</button>
+            </form>
+        </div>
+    </div>
+
+{% elif current_user.role == 'admin' %}
+    <h3>System Organizers</h3>
+    <div class="grid">
+        {% for staff in staff_list %}
+        <div class="card">
+            <div style="display:flex; justify-content:space-between;">
+                <strong>{{ staff.username }}</strong>
+                {% if staff.is_active %}
+                    <span style="color:#10B981; font-weight:bold;">Active</span>
+                {% else %}
+                    <span style="color:red; font-weight:bold;">Inactive</span>
+                {% endif %}
+            </div>
+            <p class="mono" style="font-size:0.8rem; color:var(--text-secondary); word-break:break-all;">
+                {{ staff.wallet_address }}
+            </p>
+            <div style="margin-top:auto; display:flex; gap:10px;">
+                <a href="{{ url_for('manage_user', user_id=staff.id, action='toggle') }}" class="btn btn-sm btn-outline" style="flex:1; text-align:center;">
+                    {% if staff.is_active %}Disable{% else %}Enable{% endif %}
+                </a>
+                <a href="{{ url_for('manage_user', user_id=staff.id, action='delete') }}" class="btn btn-sm" style="background:#fee2e2; color:#b91c1c; flex:1; text-align:center;" onclick="return confirm('Delete user?')">Delete</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+{% else %}
+    
+    {% if current_user.role == 'reseller' %}
+    <h3 style="margin-top:2rem;">Wholesale Opportunities</h3>
+    <div class="grid">
+        {% for evt in market_events %}
+        <div class="card">
+            <h4>{{ evt.name }}</h4>
+            <div style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:1rem;">
+                Buy at: <strong>${{ evt.wholesale_price }}</strong> <br>
+                Sell up to: <strong>${{ evt.max_resale_price }}</strong>
+            </div>
+            <form action="{{ url_for('bulk_acquire') }}" method="POST" style="display:flex; gap:5px;">
+                <input type="hidden" name="event_id" value="{{ evt.id }}">
+                <input type="number" name="quantity" placeholder="Qty" style="margin:0; width:80px;" required>
+                <button class="btn btn-accent" style="flex:1;">Acquire</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <h3 style="margin-top:2rem; border-bottom:1px solid var(--border-color); padding-bottom:0.5rem;">My Inventory</h3>
+    <div class="grid">
+        {% for item in my_assets %}
+        <div class="card">
+            <div style="display:flex; justify-content:space-between;">
+                <div>
+                    <h4 style="margin:0;">{{ item.event.name }}</h4>
+                    <span class="mono" style="font-size:0.8rem; color:var(--text-secondary);">{{ item.event.date }}</span>
+                </div>
+                <div class="tag">{{ item.owned_count }} Owned</div>
+            </div>
+            
+            <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid #eee;">
+                <div class="stat-row">
+                    <span>Listed for Sale</span>
+                    <span style="color:var(--accent-color); font-weight:bold;">{{ item.listed_count }}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Available</span>
+                    <span style="font-weight:bold;">{{ item.unlisted_count }}</span>
+                </div>
+            </div>
+
+            {% if item.unlisted_count > 0 and current_user.role == 'reseller' %}
+            <form action="{{ url_for('bulk_list') }}" method="POST" style="margin-top:1rem; display:grid; grid-template-columns:1fr 1fr auto; gap:5px;">
+                <input type="hidden" name="event_id" value="{{ item.event.id }}">
+                <input type="number" name="quantity" max="{{ item.unlisted_count }}" placeholder="Qty" style="margin:0;" required>
+                <input type="number" name="price" max="{{ item.event.max_resale_price }}" placeholder="$" style="margin:0;" required>
+                <button class="btn btn-sm btn-outline">List</button>
+            </form>
+            {% endif %}
+        </div>
+        {% else %}
+        <p style="color:var(--text-secondary);">You don't own any tickets yet.</p>
+        {% endfor %}
+    </div>
+
+{% endif %}
+
+<div id="createUserModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('createUserModal')">&times;</span>
+        <h2>
+            {% if current_user.role == 'admin' %}👑 Add Organizer{% else %}🤝 Add Reseller{% endif %}
+        </h2>
+        <form action="{{ url_for('create_staff') }}" method="POST">
+            <input type="hidden" name="role" value="{% if current_user.role == 'admin' %}organizer{% else %}reseller{% endif %}">
+            <label>Username</label>
+            <input type="text" name="username" required>
+            <label>Password</label>
+            <input type="password" name="password" required>
+            <button class="btn btn-accent" style="width:100%;">Create Account</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

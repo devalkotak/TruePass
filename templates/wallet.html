@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .tx-plus { color: #00b894; }  /* Green */
+    .tx-minus { color: #d63031; }  /* Red */
+</style>
+
+<div class="grid">
+    <div class="card">
+        <h3>💰 Wallet Balance</h3>
+        <div class="price-tag" style="margin: 1rem 0;">${{ "%.2f"|format(current_user.balance) }}</div>
+        
+        {% if current_user.role == 'organizer' %}
+            <form action="{{ url_for('withdraw') }}" method="POST">
+                <input type="number" name="amount" placeholder="Amount" max="{{ current_user.balance }}" step="0.01" required>
+                <button class="btn btn-accent" style="width:100%;">Withdraw Funds</button>
+            </form>
+        {% else %}
+            <form action="{{ url_for('wallet') }}" method="POST">
+                <label>Top Up Balance</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="number" name="amount" placeholder="Amount ($)" min="1" step="0.01" required>
+                    <button class="btn btn-accent">Add Funds</button>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="card" style="grid-column: span 2;">
+        <h3>📜 Transaction Ledger</h3>
+        <table style="width:100%; border-collapse:collapse; margin-top:1rem; font-size:0.9rem;">
+            <thead>
+                <tr style="border-bottom:2px solid #eee; text-align:left;">
+                    <th style="padding:10px;">Date</th>
+                    <th style="padding:10px;">Type</th>
+                    <th style="padding:10px;">Details</th>
+                    <th style="padding:10px; text-align:right;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in transactions %}
+                <tr style="border-bottom:1px solid #f4f4f4;">
+                    <td style="padding:10px;">{{ tx.timestamp.strftime('%Y-%m-%d') }}</td>
+                    <td style="padding:10px;">
+                        {% set t = tx.type if tx.type else 'UNKNOWN' %}
+                        {% if t == 'TOPUP' %}<span class="tag" style="background:#e6fffa; color:#00b894;">TOP UP</span>
+                        {% elif t == 'WITHDRAW' %}<span class="tag" style="background:#fff5f5; color:#d63031;">WITHDRAW</span>
+                        {% elif t == 'PURCHASE' %}<span class="tag" style="background:#fff5f5; color:#d63031;">BUY</span>
+                        {% elif t == 'SALE' %}<span class="tag" style="background:#f0f9ff; color:#0984e3;">SOLD</span>
+                        {% elif t == 'MINT' %}<span class="tag" style="background:#f0f0f0; color:#333;">MINT</span>
+                        {% elif t == 'WHOLESALE' %}<span class="tag" style="background:#fff3cd; color:#856404;">STOCK</span>
+                        {% else %}<span class="tag">{{ t }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding:10px;">
+                        {% if tx.event_name %}
+                            <strong>{{ tx.event_name }}</strong>
+                        {% else %}
+                            -
+                        {% endif %}
+                        <div style="font-size:0.75rem; color:#999; font-family:monospace; margin-top: 4px;">
+                            Ref: {{ tx.tx_hash[:12] }}...
+                        </div>
+                    </td>
+                    
+                    <td style="padding:10px; text-align:right; font-weight:bold;" 
+                        class="{{ 'tx-plus' if tx.to_address == current_user.wallet_address else 'tx-minus' }}">
+                        {{ '+' if tx.to_address == current_user.wallet_address else '-' }}{{ "%.2f"|format(tx.amount) }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" style="padding:30px; text-align:center; color: #888;">
+                        No transactions found in your ledger.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

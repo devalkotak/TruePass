@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>📦 My Orders</h2>
+<p>History of your ticket bundles.</p>
+
+<div class="grid">
+    {% for order in orders %}
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h3 style="margin:0;">{{ order.event_name }}</h3>
+                <small class="mono">{{ order.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+            </div>
+            <div class="tag">COMPLETED</div>
+        </div>
+        <hr style="border:0; border-top:1px solid #eee; margin:1rem 0;">
+        
+        <div style="display:flex; justify-content:space-between;">
+            <span>Quantity:</span>
+            <strong>{{ order.count }} Tickets</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+            <span>Total Paid:</span>
+            <strong class="text-accent">${{ order.total }}</strong>
+        </div>
+        <div style="margin-top:1rem; font-size:0.75rem; color:#888;">
+            Tx Hash: {{ order.tx_hash[:15] }}...
+        </div>
+    </div>
+    {% else %}
+    <p>No orders found.</p>
+    {% endfor %}
+</div>
+{% endblock %}

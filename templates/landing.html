@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="text-align: center; padding: 4rem 0 2rem 0;">
+    <div style="display: inline-block; padding: 0.5rem 1rem; background: #F0F7FF; color: var(--accent-color); border-radius: 100px; font-weight: 600; font-size: 0.8rem; margin-bottom: 1.5rem;">
+        ANTI-SCALPING TECHNOLOGY
+    </div>
+    
+    <h1 style="font-size: 3.5rem; letter-spacing: -1px; margin-bottom: 1rem; line-height: 1.1;">
+        Fair Ticketing <br>For <span class="text-accent">Real Fans</span>
+    </h1>
+    
+    <p style="font-size: 1.15rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto 2.5rem auto;">
+        Buy, sell, and transfer tickets securely. Our system guarantees authenticity and prevents price gouging.
+    </p>
+    
+    <div style="display: flex; justify-content: center; gap: 1rem;">
+        <a href="{{ url_for('register') }}" class="btn btn-accent">Create Account</a>
+        <a href="{{ url_for('login') }}" class="btn" style="background: white; color: black; border: 1px solid #ddd;">Sign In</a>
+    </div>
+</div>
+
+<div class="grid">
+    <div class="card">
+        <h3>🛡️ Price Protection</h3>
+        <p>Tickets cannot be resold for more than 10% above face value. No more gouging.</p>
+    </div>
+    <div class="card">
+        <h3>✅ Verified Ownership</h3>
+        <p>Every ticket is digitally signed and tracked. Fake tickets are mathematically impossible.</p>
+    </div>
+    <div class="card">
+        <h3>⚡ Instant Transfer</h3>
+        <p>Sending a ticket to a friend? Transfers happen instantly and securely.</p>
+    </div>
+</div>
+{% endblock %}

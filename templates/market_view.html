@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="text-align: center; margin-bottom: 3rem;">
+    <div style="display:inline-block; padding: 0.5rem 1.5rem; background: #fff; border:1px solid #ddd; border-radius: 50px;">
+        <small style="color: #888; letter-spacing: 1px;">VERIFIED SELLER</small><br>
+        <span style="font-weight:600; font-size:1.2rem;">{{ reseller.username }}</span>
+    </div>
+</div>
+
+<div class="grid">
+    {% for item in inventory %}
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+                <h2>{{ item.event.name }}</h2>
+                <div class="tag">{{ item.event.symbol }}</div>
+                <p style="margin-top:0.5rem;">{{ item.event.date }}</p>
+            </div>
+            <div style="text-align:right;">
+                <div class="price-tag">${{ item.price }}</div>
+                <small style="color:#666;">per ticket</small>
+            </div>
+        </div>
+
+        <hr style="border:0; border-top:1px solid #eee; margin: 1.5rem 0;">
+        
+        <div style="background:#F9FAFB; padding:1rem; border-radius:8px; display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <span style="font-size:0.9rem; font-weight:500;">Stock Available:</span>
+            <span style="font-weight:bold;">{{ item.available }}</span>
+        </div>
+
+        {% if current_user.is_authenticated %}
+            <form action="{{ url_for('add_to_cart') }}" method="POST">
+                <input type="hidden" name="reseller_wallet" value="{{ reseller.wallet_address }}">
+                <input type="hidden" name="event_id" value="{{ item.event.id }}">
+                <input type="hidden" name="price" value="{{ item.price }}">
+                
+                <div style="display:flex; gap:10px; align-items:flex-end;">
+                    <div style="flex-grow:1;">
+                        <label style="font-size:0.8rem;">Quantity</label>
+                        <input type="number" name="quantity" min="1" max="{{ item.available }}" value="1" style="margin:0;" required>
+                    </div>
+                    <button type="submit" class="btn btn-accent" style="height:46px; white-space: nowrap;">
+                        Add to Cart 🛒
+                    </button>
+                </div>
+            </form>
+        {% else %}
+            <a href="{{ url_for('login') }}" class="btn" style="width:100%; text-align:center;">Log In to Buy</a>
+        {% endif %}
+    </div>
+    {% else %}
+        <div style="grid-column: 1/-1; text-align:center; padding: 4rem; color: #888; background: #fff; border: 1px dashed #ccc; border-radius: 12px;">
+            <h3>No Active Listings</h3>
+            <p>This seller has no tickets listed right now.</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

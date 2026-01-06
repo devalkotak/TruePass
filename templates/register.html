@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card" style="max-width: 450px; margin: 2rem auto;">
+    <h2>Fan Registration</h2>
+    <p style="font-size: 0.9rem; color: #555;">
+        Create a secure account to buy guaranteed authentic tickets.
+        <br><br>
+        <em>Note: Resellers and Organizers must be approved by the administration.</em>
+    </p>
+    
+    <form action="" method="POST" style="margin-top: 2rem;">
+        <label>Choose Username</label>
+        <input type="text" name="username" required>
+        
+        <label>Set Password</label>
+        <input type="password" name="password" required>
+        
+        <button type="submit" class="btn btn-accent" style="width: 100%;">Create Fan Account</button>
+    </form>
+</div>
+{% endblock %}

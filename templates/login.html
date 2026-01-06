@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card" style="max-width: 400px; margin: 2rem auto; text-align: center;">
+    <h2>Welcome Back</h2>
+    <p style="color: #666; font-size: 0.9rem;">Sign in to manage your tickets</p>
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 1.5rem 0;">
+    
+    <form action="" method="POST" style="text-align: left;">
+        <label>Username</label>
+        <input type="text" name="username" required>
+        
+        <label>Password</label>
+        <input type="password" name="password" required>
+        
+        <button type="submit" class="btn btn-accent" style="width: 100%;">Sign In</button>
+    </form>
+    
+    <p style="margin-top: 1.5rem; font-size: 0.85rem;">
+        No account? <a href="{{ url_for('register') }}" style="color: var(--accent-color);">Sign Up</a>
+    </p>
+</div>
+{% endblock %}
