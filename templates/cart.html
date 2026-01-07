@@ -8,11 +8,11 @@
     <div class="card" style="grid-column: span 2;">
         <table style="width:100%; border-collapse:collapse;">
             <thead>
-                <tr style="border-bottom:1px solid #ddd; text-align:left;">
-                    <th style="padding:10px;">Event</th>
-                    <th style="padding:10px;">Price</th>
-                    <th style="padding:10px;">Qty</th>
-                    <th style="padding:10px;">Subtotal</th>
+                <tr style="border-bottom:2px solid #eee; text-align:left;">
+                    <th style="padding:15px;">Event Details</th>
+                    <th style="padding:15px;">Price</th>
+                    <th style="padding:15px;">Qty</th>
+                    <th style="padding:15px;">Subtotal</th>
                     <th></th>
                 </tr>
             </thead>
@@ -20,14 +20,16 @@
                 {% for line in cart %}
                 <tr style="border-bottom:1px solid #f9f9f9;">
                     <td style="padding:15px;">
-                        <strong>{{ line.event.name }}</strong><br>
-                        <small>{{ line.event.date }}</small>
+                        <div style="font-weight:800; font-size:1.1rem;">{{ line.event.name }}</div>
+                        <div class="mono" style="font-size:0.85rem; color:var(--text-secondary);">
+                            {{ line.event.date }} | Code: {{ line.event.symbol }}
+                        </div>
                     </td>
                     <td style="padding:15px;">${{ line.item.price_per_item }}</td>
                     <td style="padding:15px;">{{ line.item.quantity }}</td>
-                    <td style="padding:15px;">${{ line.subtotal }}</td>
+                    <td style="padding:15px; font-weight:bold;">${{ line.subtotal }}</td>
                     <td style="padding:15px;">
-                        <a href="{{ url_for('remove_cart', item_id=line.item.id) }}" style="color:red; text-decoration:none;">&times;</a>
+                        <a href="{{ url_for('remove_cart', item_id=line.item.id) }}" style="color:#ef4444; text-decoration:none; font-weight:bold;">Remove</a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -35,29 +37,26 @@
         </table>
     </div>
 
-    <div class="card">
-        <h3>Summary</h3>
+    <div class="card" style="height: fit-content;">
+        <h3>Order Summary</h3>
         <div style="display:flex; justify-content:space-between; margin:1rem 0;">
-            <span>Total Items:</span>
-            <strong>{{ cart|length }}</strong>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin:1rem 0; font-size:1.2rem;">
             <span>Total Cost:</span>
-            <strong class="text-accent">${{ total }}</strong>
+            <strong style="font-size:1.5rem; color:var(--accent-color);">${{ total }}</strong>
         </div>
         
         <form action="{{ url_for('checkout') }}" method="POST">
-            <button class="btn btn-accent" style="width:100%;">Confirm Purchase</button>
+            <button class="btn btn-accent" style="width:100%; padding:1rem;">Confirm Purchase</button>
         </form>
-        <p style="text-align:center; font-size:0.8rem; margin-top:10px; color:#666;">
-            Balance: ${{ current_user.balance }}
-        </p>
+        
+        <div style="text-align:center; margin-top:1rem; font-size:0.9rem; color:var(--text-secondary);">
+            Wallet Balance: <strong>${{ "%.2f"|format(current_user.balance) }}</strong>
+        </div>
     </div>
 </div>
 {% else %}
-    <div style="text-align:center; padding:4rem;">
-        <p>Your cart is empty.</p>
-        <a href="{{ url_for('dashboard') }}" class="btn">Go to Dashboard</a>
+    <div style="text-align:center; padding:4rem; background:white; border-radius:12px; border:1px dashed #ccc;">
+        <h3>Your cart is empty</h3>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline" style="margin-top:1rem;">Go to Dashboard</a>
     </div>
 {% endif %}
 {% endblock %}

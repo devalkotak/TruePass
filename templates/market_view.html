@@ -3,7 +3,7 @@
 {% block content %}
 <div style="text-align: center; margin-bottom: 3rem;">
     <div style="display:inline-block; padding: 0.5rem 1.5rem; background: #fff; border:1px solid #ddd; border-radius: 50px;">
-        <small style="color: #888; letter-spacing: 1px;">VERIFIED SELLER</small><br>
+        <small style="color: #888; letter-spacing: 1px;">OFFICIAL RESELLER</small><br>
         <span style="font-weight:600; font-size:1.2rem;">{{ reseller.username }}</span>
     </div>
 </div>
@@ -11,23 +11,23 @@
 <div class="grid">
     {% for item in inventory %}
     <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-            <div>
-                <h2>{{ item.event.name }}</h2>
-                <div class="tag">{{ item.event.symbol }}</div>
-                <p style="margin-top:0.5rem;">{{ item.event.date }}</p>
-            </div>
-            <div style="text-align:right;">
-                <div class="price-tag">${{ item.price }}</div>
-                <small style="color:#666;">per ticket</small>
+        <div style="background: var(--bg-color); margin: -1.5rem -1.5rem 1rem -1.5rem; padding: 1.5rem; border-bottom: 1px solid var(--border-color); border-radius: 12px 12px 0 0;">
+            <h2 style="margin:0; font-size: 1.5rem;">{{ item.event.name }}</h2>
+            <div style="display:flex; justify-content:space-between; margin-top:0.5rem;">
+                <span class="tag" style="background:white;">{{ item.event.symbol }}</span>
+                <span class="mono" style="color:var(--text-secondary);">{{ item.event.date }}</span>
             </div>
         </div>
 
-        <hr style="border:0; border-top:1px solid #eee; margin: 1.5rem 0;">
-        
-        <div style="background:#F9FAFB; padding:1rem; border-radius:8px; display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-            <span style="font-size:0.9rem; font-weight:500;">Stock Available:</span>
-            <span style="font-weight:bold;">{{ item.available }}</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <div>
+                <span style="display:block; font-size:0.8rem; color:var(--text-secondary);">Price per Ticket</span>
+                <span style="font-size:1.8rem; font-weight:800; color:var(--accent-color);">${{ item.price }}</span>
+            </div>
+            <div style="text-align:right;">
+                <span style="display:block; font-size:0.8rem; color:var(--text-secondary);">Available</span>
+                <span style="font-weight:bold;">{{ item.available }}</span>
+            </div>
         </div>
 
         {% if current_user.is_authenticated %}
@@ -36,12 +36,15 @@
                 <input type="hidden" name="event_id" value="{{ item.event.id }}">
                 <input type="hidden" name="price" value="{{ item.price }}">
                 
-                <div style="display:flex; gap:10px; align-items:flex-end;">
-                    <div style="flex-grow:1;">
-                        <label style="font-size:0.8rem;">Quantity</label>
-                        <input type="number" name="quantity" min="1" max="{{ item.available }}" value="1" style="margin:0;" required>
-                    </div>
-                    <button type="submit" class="btn btn-accent" style="height:46px; white-space: nowrap;">
+                <div style="display:flex; gap:10px;">
+                    <select name="quantity" style="margin:0; width:80px;">
+                        {% for i in range(1, 6) %}
+                            {% if i <= item.available %}
+                                <option value="{{ i }}">{{ i }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-accent" style="flex-grow:1;">
                         Add to Cart 🛒
                     </button>
                 </div>
@@ -51,9 +54,9 @@
         {% endif %}
     </div>
     {% else %}
-        <div style="grid-column: 1/-1; text-align:center; padding: 4rem; color: #888; background: #fff; border: 1px dashed #ccc; border-radius: 12px;">
-            <h3>No Active Listings</h3>
-            <p>This seller has no tickets listed right now.</p>
+        <div style="grid-column: 1/-1; text-align:center; padding: 4rem;">
+            <h3>Sold Out</h3>
+            <p>This reseller has no tickets listed right now.</p>
         </div>
     {% endfor %}
 </div>

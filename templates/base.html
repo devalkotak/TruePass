@@ -1,84 +1,109 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TruePass</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="{{ url_for('index') }}" class="logo">True<span class="text-accent">Pass</span></a>
-            
-            <div class="nav-links">
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('wallet') }}" class="nav-item">
-                        <span style="color:var(--text-secondary); font-size:0.9em;">WALLET</span> 
-                        <span style="font-weight:bold;">${{ "%.2f"|format(current_user.balance) }}</span>
-                    </a>
-                    
-                    {% if current_user.role == 'customer' %}
-                        <a href="{{ url_for('view_cart') }}" class="nav-item">Cart</a>
-                        <a href="{{ url_for('orders') }}" class="nav-item">Orders</a>
-                    {% endif %}
-                    
-                    <a href="{{ url_for('dashboard') }}" class="nav-item">Dashboard</a>
-                    
-                    <button onclick="openModal('passwordModal')" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
-                        Security
-                    </button>
+{% extends "base.html" %}
 
-                    <a href="{{ url_for('logout') }}" class="btn btn-sm" style="background:#eee; color:#333; padding: 0.4rem 0.8rem;">Logout</a>
-                {% else %}
-                    <a href="{{ url_for('login') }}" class="nav-item">Log In</a>
-                    <a href="{{ url_for('register') }}" class="btn btn-accent btn-sm">Sign Up</a>
-                {% endif %}
-            </div>
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1 style="margin:0;">Dashboard</h1>
+        <p style="color:var(--text-secondary); margin:0;">Welcome back, <strong>{{ current_user.username }}</strong></p>
+    </div>
+    
+    <div style="display:flex; gap:10px;">
+        {% if current_user.role == 'organizer' %}
+            <button onclick="openModal('createEventModal')" class="btn btn-accent">+ New Event</button>
+            <button onclick="openModal('createUserModal')" class="btn btn-outline">+ Add Reseller</button>
+        {% elif current_user.role == 'admin' %}
+            <button onclick="openModal('createUserModal')" class="btn btn-accent">+ Create Organizer</button>
+        {% elif current_user.role == 'reseller' %}
+             <a href="{{ url_for('view_market', wallet_address=current_user.wallet_address) }}" class="btn btn-accent">View My Shop &rarr;</a>
+        {% endif %}
+    </div>
+</div>
+
+{% if current_user.role == 'organizer' %}
+    <h3 style="border-bottom:1px solid var(--border-color); padding-bottom:0.5rem;">Your Events</h3>
+    <div class="grid">
+        {% for d in organizer_data %}
+        <div class="card">
+            <h3>{{ d.event.name }}</h3>
+            <p>Sold: {{ d.sold }} / {{ d.total }}</p>
         </div>
-    </nav>
-
-    <main class="container">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div style="margin-bottom: 2rem;">
-                    {% for message in messages %}
-                        <div style="padding:1rem; background:white; border-left:4px solid var(--accent-color); border-radius:4px; box-shadow:var(--shadow-sm);">{{ message }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-        
-        {% block content %}{% endblock %}
-    </main>
-
-    <div id="passwordModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('passwordModal')">&times;</span>
-            <h2>🔐 Update Password</h2>
-            <p style="color:var(--text-secondary); margin-bottom:1.5rem;">Ensure your account stays secure.</p>
-            <form action="{{ url_for('change_password') }}" method="POST">
-                <label>New Password</label>
-                <input type="password" name="new_password" required placeholder="••••••••">
-                <button class="btn btn-accent" style="width:100%;">Update Credentials</button>
-            </form>
+        {% endfor %}
+    </div>
+    {% elif current_user.role == 'admin' %}
+    <h3>System Organizers</h3>
+    <div class="grid">
+        {% for staff in staff_list %}
+        <div class="card">
+            <strong>{{ staff.username }}</strong>
+            <small>{{ staff.wallet_address }}</small>
         </div>
+        {% endfor %}
     </div>
 
-    <script>
-        function openModal(id) {
-            document.getElementById(id).style.display = "block";
-        }
-        function closeModal(id) {
-            document.getElementById(id).style.display = "none";
-        }
-        // Close modal if user clicks outside content
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = "none";
-            }
-        }
-    </script>
-</body>
-</html>
+{% else %}
+    {% if current_user.role == 'reseller' %}
+    <h3 style="margin-top:2rem;">Wholesale Opportunities</h3>
+    <div class="grid">
+        {% for evt in market_events %}
+        <div class="card">
+            <h4>{{ evt.name }}</h4>
+            <div style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:1rem;">
+                Buy at: <strong>${{ evt.wholesale_price }}</strong> <br>
+                Sell up to: <strong>${{ evt.max_resale_price }}</strong>
+            </div>
+            <form action="{{ url_for('bulk_acquire') }}" method="POST" style="display:flex; gap:5px;">
+                <input type="hidden" name="event_id" value="{{ evt.id }}">
+                <input type="number" name="quantity" placeholder="Qty" style="margin:0; width:80px;" required>
+                <button class="btn btn-accent" style="flex:1;">Acquire</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <h3 style="margin-top:2rem; border-bottom:1px solid var(--border-color); padding-bottom:0.5rem;">My Tickets</h3>
+    <div class="grid">
+        {% for item in my_assets %}
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <h3 style="margin:0; font-size:1.4rem;">{{ item.event.name }}</h3>
+                    <span class="mono" style="font-size:0.8rem; color:var(--text-secondary);">{{ item.event.date }}</span>
+                </div>
+                <div class="tag">{{ item.owned_count }} Tickets</div>
+            </div>
+            
+            <hr style="border:0; border-top:1px solid #eee; margin:1rem 0;">
+
+            {% if current_user.role == 'reseller' %}
+                <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
+                    <span>Listed: <strong style="color:var(--accent-color);">{{ item.listed_count }}</strong></span>
+                    <span>Available: <strong>{{ item.unlisted_count }}</strong></span>
+                </div>
+                
+                {% if item.unlisted_count > 0 %}
+                <form action="{{ url_for('bulk_list') }}" method="POST" style="display:grid; grid-template-columns:1fr 1fr auto; gap:5px;">
+                    <input type="hidden" name="event_id" value="{{ item.event.id }}">
+                    <input type="number" name="quantity" max="{{ item.unlisted_count }}" placeholder="Qty" required>
+                    <input type="number" name="price" max="{{ item.event.max_resale_price }}" placeholder="$" required>
+                    <button class="btn btn-sm btn-outline">List</button>
+                </form>
+                {% endif %}
+
+            {% else %}
+                <div style="text-align:center; padding: 1rem; background: #f9f9f9; border-radius: 8px;">
+                    <p style="margin:0; color:var(--text-secondary); font-size:0.9rem;">Scan Code for Entry</p>
+                    <div style="font-size:1.5rem; letter-spacing:3px; font-weight:bold; margin-top:0.5rem;">
+                        {{ item.event.symbol }}-{{ current_user.id * 83 }}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <p style="color:var(--text-secondary);">You don't own any tickets yet.</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% include "modals.html" ignore missing %}
+{% endblock %}
